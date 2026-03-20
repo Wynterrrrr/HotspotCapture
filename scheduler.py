@@ -22,7 +22,7 @@ OUTPUT_DIR = Path(__file__).parent / "hotnews_output"
 
 # GitHub API 推送配置（无需克隆仓库）
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")  # 从环境变量读取
-GITHUB_REPO = os.environ.get("GITHUB_REPO", "WynterS/ObsdianDrive")  # 仓库：owner/repo
+GITHUB_REPO = os.environ.get("GITHUB_REPO", "Wynterrrrr/ObsdianDrive")  # 仓库：owner/repo
 GITHUB_BRANCH = os.environ.get("GITHUB_BRANCH", "main")  # 目标分支
 GITHUB_TARGET_DIR = "hotnews"  # 仓库内目标目录
 
