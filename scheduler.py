@@ -6,20 +6,25 @@
 import asyncio
 import os
 import sys
-import subprocess
-import shutil
+import base64
+import json
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
+import urllib.request
+import urllib.error
 
 # 添加项目根目录到路径
 sys.path.insert(0, str(Path(__file__).parent))
 
-# 配置
+# ===================== 配置 =====================
 OUTPUT_DIR = Path(__file__).parent / "hotnews_output"
-# 本地Obsidian仓库路径（已clone到本地）
-LOCAL_REPO_DIR = Path(r"C:\Users\Wynter\Documents\obsidian\WynterS\ObsdianDrive")
-GITHUB_TARGET_DIR = "hotnews"
+
+# GitHub API 推送配置（无需克隆仓库）
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")  # 从环境变量读取
+GITHUB_REPO = os.environ.get("GITHUB_REPO", "WynterS/ObsdianDrive")  # 仓库：owner/repo
+GITHUB_BRANCH = os.environ.get("GITHUB_BRANCH", "main")  # 目标分支
+GITHUB_TARGET_DIR = "hotnews"  # 仓库内目标目录
 
 
 # ===================== 平台配置 =====================
@@ -208,90 +213,99 @@ async def run_deepseek_analysis(md_content: str, exec_time: datetime) -> Optiona
         return None
 
 
+def github_api_request(
+    method: str, path: str, data: Optional[dict] = None
+) -> tuple[int, dict]:
+    """发送 GitHub API 请求"""
+    url = f"https://api.github.com{path}"
+    headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
+        "User-Agent": "HotspotCapture/1.0",
+    }
+
+    req_data = None
+    if data:
+        req_data = json.dumps(data).encode("utf-8")
+
+    req = urllib.request.Request(url, data=req_data, headers=headers, method=method)
+
+    try:
+        with urllib.request.urlopen(req, timeout=30) as response:
+            return response.status, json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode("utf-8") if e.fp else ""
+        return e.code, {"error": error_body}
+    except Exception as e:
+        return 0, {"error": str(e)}
+
+
+def push_file_to_github(local_path: Path, remote_path: str, commit_msg: str) -> bool:
+    """通过 GitHub API 推送单个文件"""
+    if not GITHUB_TOKEN:
+        log("❌ 未配置 GITHUB_TOKEN 环境变量")
+        return False
+
+    # 读取并编码文件内容
+    with open(local_path, "rb") as f:
+        content = base64.b64encode(f.read()).decode("utf-8")
+
+    # 检查文件是否已存在（获取 sha）
+    status, result = github_api_request(
+        "GET", f"/repos/{GITHUB_REPO}/contents/{remote_path}?ref={GITHUB_BRANCH}"
+    )
+
+    sha = None
+    if status == 200:
+        sha = result.get("sha")
+        log(f"📄 文件已存在，将更新: {remote_path}")
+    elif status == 404:
+        log(f"📄 创建新文件: {remote_path}")
+    else:
+        log(f"⚠️ 检查文件状态异常: {result.get('error', '未知')}")
+
+    # 构建请求体
+    payload = {"message": commit_msg, "content": content, "branch": GITHUB_BRANCH}
+    if sha:
+        payload["sha"] = sha
+
+    # 推送文件
+    status, result = github_api_request(
+        "PUT", f"/repos/{GITHUB_REPO}/contents/{remote_path}", payload
+    )
+
+    if status in (200, 201):
+        log(f"✅ 推送成功: {remote_path}")
+        return True
+    else:
+        log(f"❌ 推送失败: {result.get('message', result.get('error', '未知'))}")
+        return False
+
+
 def push_to_github(
     filepath: Path, exec_time: datetime, thinking_filepath: Optional[Path] = None
 ) -> bool:
-    """推送到GitHub（使用本地已clone的仓库）"""
-
+    """推送到 GitHub（通过 REST API，无需克隆仓库）"""
     try:
-        # 检查本地仓库是否存在
-        if not LOCAL_REPO_DIR.exists():
-            log(f"❌ 本地仓库目录不存在: {LOCAL_REPO_DIR}")
-            return False
-
-        # 目标目录
-        target_dir = LOCAL_REPO_DIR / GITHUB_TARGET_DIR
-        target_dir.mkdir(parents=True, exist_ok=True)
-
-        # 复制热点文件
-        target_file = target_dir / filepath.name
-        shutil.copy(filepath, target_file)
-        log(f"📄 热点文件已复制: {target_file}")
-
-        # 复制深度思考文件（如果有）
-        thinking_target = None
-        if thinking_filepath and thinking_filepath.exists():
-            thinking_target = target_dir / thinking_filepath.name
-            shutil.copy(thinking_filepath, thinking_target)
-            log(f"📄 深度思考文件已复制: {thinking_target}")
-
-        # Git操作
         commit_msg = f"docs: 更新热点数据 {exec_time.strftime('%Y-%m-%d %H:%M')}"
+        success = True
 
-        # 先拉取最新代码
-        subprocess.run(
-            ["git", "pull"],
-            cwd=str(LOCAL_REPO_DIR),
-            capture_output=True,
-            encoding="utf-8",
-            errors="ignore",
-            timeout=60,
-        )
+        # 推送热点文件
+        remote_path = f"{GITHUB_TARGET_DIR}/{filepath.name}"
+        if not push_file_to_github(filepath, remote_path, commit_msg):
+            success = False
 
-        subprocess.run(
-            ["git", "add", "."],
-            cwd=str(LOCAL_REPO_DIR),
-            capture_output=True,
-            encoding="utf-8",
-            errors="ignore",
-            timeout=30,
-        )
-        result = subprocess.run(
-            ["git", "commit", "-m", commit_msg],
-            cwd=str(LOCAL_REPO_DIR),
-            capture_output=True,
-            encoding="utf-8",
-            errors="ignore",
-            timeout=30,
-        )
+        # 推送深度思考文件（如果有）
+        if thinking_filepath and thinking_filepath.exists():
+            thinking_remote = f"{GITHUB_TARGET_DIR}/{thinking_filepath.name}"
+            if not push_file_to_github(thinking_filepath, thinking_remote, commit_msg):
+                success = False
 
-        # 检查是否有变更
-        if result.stdout and "nothing to commit" in result.stdout:
-            log("ℹ️ 没有需要提交的变更（文件可能已存在）")
-            return True
+        if success:
+            log(f"✅ 已成功推送到 GitHub ({GITHUB_REPO})")
+        return success
 
-        result = subprocess.run(
-            ["git", "push"],
-            cwd=str(LOCAL_REPO_DIR),
-            capture_output=True,
-            encoding="utf-8",
-            errors="ignore",
-            timeout=120,
-        )
-
-        if result.returncode != 0:
-            log(f"❌ 推送失败: {result.stderr if result.stderr else '未知错误'}")
-            return False
-
-        log(f"✅ 已成功推送到 GitHub")
-        log(f"   - 热点文件: {GITHUB_TARGET_DIR}/{filepath.name}")
-        if thinking_target:
-            log(f"   - 思考文件: {GITHUB_TARGET_DIR}/{thinking_target.name}")
-        return True
-
-    except subprocess.TimeoutExpired:
-        log("❌ Git操作超时")
-        return False
     except Exception as e:
         log(f"❌ 推送 GitHub 失败: {str(e)}")
         return False

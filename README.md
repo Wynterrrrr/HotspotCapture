@@ -1,129 +1,243 @@
-<div align="center">
-<h2>PyDailyHotApi</h2>
-<p>一个聚合热门数据的 API 接口（Python + FastAPI 实现）</p>
-<br />
-<a href="https://github.com/imsyy/DailyHotApi">DailyHotApi 
-</a>项目的python实现
+# PyDailyHotApi
 
-</div>
+> 一个聚合热门数据的 API 接口，支持 60+ 个主流平台热点数据抓取
 
-## 🚩 特性
+## 功能特性
 
-- 极快响应，便于开发
-- 支持 JSON 模式
-- 支持多种部署方式
-- 简明的路由目录，便于新增
-- 使用 Python + FastAPI 实现，性能优异
+- **多平台支持**：微博、知乎、哔哩哔哩、抖音、GitHub、豆瓣等 60+ 个平台
+- **RESTful API**：基于 FastAPI 构建，支持 Swagger 文档
+- **定时抓取**：每日四次自动抓取（6:00/11:00/16:00/21:00 北京时间）
+- **AI 分析**：集成大模型进行热点深度分析
+- **GitHub 同步**：自动推送热点汇总到 GitHub 仓库
+- **缓存机制**：内置缓存系统，减少重复请求
 
+## 支持平台
 
-## 📊 接口总览
+| 类别 | 平台 |
+|------|------|
+| 社交媒体 | 微博、知乎、贴吧、豆瓣小组、小红书、Reddit |
+| 视频平台 | 哔哩哔哩、抖音、快手、AcFun |
+| 新闻资讯 | 今日头条、腾讯新闻、网易新闻、新浪新闻、澎湃新闻、财联社 |
+| 科技资讯 | 36氪、虎嗅、少数派、爱范儿、IT之家、极客公园 |
+| 开发者社区 | GitHub、掘金、CSDN、V2EX、HostLoc、LinuxDo、NodeSeek |
+| 游戏相关 | TapTap、游民星空、虎扑、原神、崩坏、星穹铁道、LOL |
+| 其他 | 百度热搜、豆瓣电影、地震速报、历史今日、天气预警 |
 
-<details>
-<summary>查看全部接口</summary>
-
-> 示例站点运行于海外服务器，部分国内站点可能存在访问异常，请以实际情况为准
-
-| **站点**         | **类别**     | **调用名称**   | **状态**                                                                                                                                                            |
-| ---------------- | ------------ | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 哔哩哔哩         | 热门榜       | bilibili       | ![https://api-hot.imsyy.top/bilibili](https://img.shields.io/website.svg?label=bilibili&url=https://api-hot.imsyy.top/bilibili&cacheSeconds=7200)                   |
-| AcFun            | 排行榜       | acfun          | ![https://api-hot.imsyy.top/acfun](https://img.shields.io/website.svg?label=acfun&url=https://api-hot.imsyy.top/acfun&cacheSeconds=7200)                            |
-| 微博             | 热搜榜       | weibo          | ![https://api-hot.imsyy.top/weibo](https://img.shields.io/website.svg?label=weibo&url=https://api-hot.imsyy.top/weibo&cacheSeconds=7200)                            |
-| 知乎             | 热榜         | zhihu          | ![https://api-hot.imsyy.top/zhihu](https://img.shields.io/website.svg?label=zhihu&url=https://api-hot.imsyy.top/zhihu&cacheSeconds=7200)                            |
-| 知乎日报         | 推荐榜       | zhihu-daily    | ![https://api-hot.imsyy.top/zhihu-daily](https://img.shields.io/website.svg?label=zhihu-daily&url=https://api-hot.imsyy.top/zhihu-daily&cacheSeconds=7200)          |
-| 百度             | 热搜榜       | baidu          | ![https://api-hot.imsyy.top/baidu](https://img.shields.io/website.svg?label=baidu&url=https://api-hot.imsyy.top/baidu&cacheSeconds=7200)                            |
-| 抖音             | 热点榜       | douyin         | ![https://api-hot.imsyy.top/douyin](https://img.shields.io/website.svg?label=douyin&url=https://api-hot.imsyy.top/douyin&cacheSeconds=7200)                         |
-| 快手             | 热点榜       | kuaishou       | ![https://api-hot.imsyy.top/kuaishou](https://img.shields.io/website.svg?label=kuaishou&url=https://api-hot.imsyy.top/kuaishou&cacheSeconds=7200)                   |
-| 豆瓣电影         | 新片榜       | douban-movie   | ![https://api-hot.imsyy.top/douban-movie](https://img.shields.io/website.svg?label=douban-movie&url=https://api-hot.imsyy.top/douban-movie&cacheSeconds=7200)       |
-| 豆瓣讨论小组     | 讨论精选     | douban-group   | ![https://api-hot.imsyy.top/douban-group](https://img.shields.io/website.svg?label=douban-group&url=https://api-hot.imsyy.top/douban-group&cacheSeconds=7200)       |
-| 百度贴吧         | 热议榜       | tieba          | ![https://api-hot.imsyy.top/tieba](https://img.shields.io/website.svg?label=tieba&url=https://api-hot.imsyy.top/tieba&cacheSeconds=7200)                            |
-| 少数派           | 热榜         | sspai          | ![https://api-hot.imsyy.top/sspai](https://img.shields.io/website.svg?label=sspai&url=https://api-hot.imsyy.top/sspai&cacheSeconds=7200)                            |
-| IT之家           | 热榜         | ithome         | ![https://api-hot.imsyy.top/ithome](https://img.shields.io/website.svg?label=ithome&url=https://api-hot.imsyy.top/ithome&cacheSeconds=7200)                         |
-| IT之家「喜加一」 | 最新动态     | ithome-xijiayi | ![https://api-hot.imsyy.top/ithome-xijiayi](https://img.shields.io/website.svg?label=ithome-xijiayi&url=https://api-hot.imsyy.top/ithome-xijiayi&cacheSeconds=7200) |
-| 简书             | 热门推荐     | jianshu        | ![https://api-hot.imsyy.top/jianshu](https://img.shields.io/website.svg?label=jianshu&url=https://api-hot.imsyy.top/jianshu&cacheSeconds=7200)                      |
-| 果壳             | 热门文章     | guokr          | ![https://api-hot.imsyy.top/guokr](https://img.shields.io/website.svg?label=guokr&url=https://api-hot.imsyy.top/guokr&cacheSeconds=7200)                            |
-| 澎湃新闻         | 热榜         | thepaper       | ![https://api-hot.imsyy.top/thepaper](https://img.shields.io/website.svg?label=thepaper&url=https://api-hot.imsyy.top/thepaper&cacheSeconds=7200)                   |
-| 今日头条         | 热榜         | toutiao        | ![https://api-hot.imsyy.top/toutiao](https://img.shields.io/website.svg?label=toutiao&url=https://api-hot.imsyy.top/toutiao&cacheSeconds=7200)                      |
-| 36 氪            | 热榜         | 36kr           | ![https://api-hot.imsyy.top/36kr](https://img.shields.io/website.svg?label=36kr&url=https://api-hot.imsyy.top/36kr&cacheSeconds=7200)                               |
-| 51CTO            | 推荐榜       | 51cto          | ![https://api-hot.imsyy.top/51cto](https://img.shields.io/website.svg?label=51cto&url=https://api-hot.imsyy.top/51cto&cacheSeconds=7200)                            |
-| CSDN             | 排行榜       | csdn           | ![https://api-hot.imsyy.top/csdn](https://img.shields.io/website.svg?label=csdn&url=https://api-hot.imsyy.top/csdn&cacheSeconds=7200)                               |
-| NodeSeek         | 最新动态     | nodeseek       | ![https://api-hot.imsyy.top/nodeseek](https://img.shields.io/website.svg?label=nodeseek&url=https://api-hot.imsyy.top/nodeseek&cacheSeconds=7200)                   |
-| 稀土掘金         | 热榜         | juejin         | ![https://api-hot.imsyy.top/juejin](https://img.shields.io/website.svg?label=juejin&url=https://api-hot.imsyy.top/juejin&cacheSeconds=7200)                         |
-| 腾讯新闻         | 热点榜       | qq-news        | ![https://api-hot.imsyy.top/qq-news](https://img.shields.io/website.svg?label=qq-news&url=https://api-hot.imsyy.top/qq-news&cacheSeconds=7200)                      |
-| 新浪网           | 热榜         | sina           | ![https://api-hot.imsyy.top/sina](https://img.shields.io/website.svg?label=sina&url=https://api-hot.imsyy.top/sina&cacheSeconds=7200)                               |
-| 新浪新闻         | 热点榜       | sina-news      | ![https://api-hot.imsyy.top/sina-news](https://img.shields.io/website.svg?label=sina-news&url=https://api-hot.imsyy.top/sina-news&cacheSeconds=7200)                |
-| 网易新闻         | 热点榜       | netease-news   | ![https://api-hot.imsyy.top/netease-news](https://img.shields.io/website.svg?label=netease-news&url=https://api-hot.imsyy.top/netease-news&cacheSeconds=7200)       |
-| 吾爱破解         | 榜单         | 52pojie        | ![https://api-hot.imsyy.top/52pojie](https://img.shields.io/website.svg?label=52pojie&url=https://api-hot.imsyy.top/52pojie&cacheSeconds=7200)                      |
-| 全球主机交流     | 榜单         | hostloc        | ![https://api-hot.imsyy.top/hostloc](https://img.shields.io/website.svg?label=hostloc&url=https://api-hot.imsyy.top/hostloc&cacheSeconds=7200)                      |
-| 虎嗅             | 24小时       | huxiu          | ![https://api-hot.imsyy.top/huxiu](https://img.shields.io/website.svg?label=huxiu&url=https://api-hot.imsyy.top/huxiu&cacheSeconds=7200)                            |
-| 酷安             | 热榜         | coolapk        | ![https://api-hot.imsyy.top/coolapk](https://img.shields.io/website.svg?label=coolapk&url=https://api-hot.imsyy.top/coolapk&cacheSeconds=7200)                      |
-| 虎扑             | 步行街热帖   | hupu           | ![https://api-hot.imsyy.top/hupu](https://img.shields.io/website.svg?label=hupu&url=https://api-hot.imsyy.top/hupu&cacheSeconds=7200)                               |
-| 爱范儿           | 快讯         | ifanr          | ![https://api-hot.imsyy.top/ifanr](https://img.shields.io/website.svg?label=ifanr&url=https://api-hot.imsyy.top/ifanr&cacheSeconds=7200)                            |
-| 英雄联盟         | 更新公告     | lol            | ![https://api-hot.imsyy.top/lol](https://img.shields.io/website.svg?label=lol&url=https://api-hot.imsyy.top/lol&cacheSeconds=7200)                                  |
-| 米游社           | 最新消息     | miyoushe       | ![https://api-hot.imsyy.top/miyoushe](https://img.shields.io/website.svg?label=miyoushe&url=https://api-hot.imsyy.top/miyoushe&cacheSeconds=7200)                   |
-| 原神             | 最新消息     | genshin        | ![https://api-hot.imsyy.top/genshin](https://img.shields.io/website.svg?label=genshin&url=https://api-hot.imsyy.top/genshin&cacheSeconds=7200)                      |
-| 崩坏3            | 最新动态     | honkai         | ![https://api-hot.imsyy.top/honkai](https://img.shields.io/website.svg?label=honkai&url=https://api-hot.imsyy.top/honkai&cacheSeconds=7200)                         |
-| 崩坏：星穹铁道   | 最新动态     | starrail       | ![https://api-hot.imsyy.top/starrail](https://img.shields.io/website.svg?label=starrail&url=https://api-hot.imsyy.top/starrail&cacheSeconds=7200)                   |
-| 微信读书         | 飙升榜       | weread         | ![https://api-hot.imsyy.top/weread](https://img.shields.io/website.svg?label=weread&url=https://api-hot.imsyy.top/weread&cacheSeconds=7200)                         |
-| NGA              | 热帖         | ngabbs         | ![https://api-hot.imsyy.top/ngabbs](https://img.shields.io/website.svg?label=ngabbs&url=https://api-hot.imsyy.top/ngabbs&cacheSeconds=7200)                         |
-| V2EX             | 主题榜       | v2ex           | ![https://api-hot.imsyy.top/v2ex](https://img.shields.io/website.svg?label=v2ex&url=https://api-hot.imsyy.top/v2ex&cacheSeconds=7200)                               |
-| HelloGitHub      | Trending     | hellogithub    | ![https://api-hot.imsyy.top/hellogithub](https://img.shields.io/website.svg?label=hellogithub&url=https://api-hot.imsyy.top/hellogithub&cacheSeconds=7200)          |
-| 中央气象台       | 全国气象预警 | weatheralarm   | ![https://api-hot.imsyy.top/weatheralarm](https://img.shields.io/website.svg?label=weatheralarm&url=https://api-hot.imsyy.top/weatheralarm&cacheSeconds=7200)       |
-| 中国地震台       | 地震速报     | earthquake     | ![https://api-hot.imsyy.top/earthquake](https://img.shields.io/website.svg?label=earthquake&url=https://api-hot.imsyy.top/earthquake&cacheSeconds=7200)             |
-| 历史上的今天     | 月-日        | history        | ![https://api-hot.imsyy.top/history](https://img.shields.io/website.svg?label=history&url=https://api-hot.imsyy.top/history&cacheSeconds=7200)                      |
-
-</details>
-
-
-## ⚙️ 使用
+## 快速开始
 
 ### 环境要求
 
-- Python 3.9+
-- uv（Python 包管理器）
+- Python 3.10+
+- [uv](https://docs.astral.sh/uv/) (推荐) 或 pip
 
-### 安装与运行
-
-1. **克隆项目**
+### 安装
 
 ```bash
-git clone https://github.com/ArcherZX/PyDailyHotApi.git
-cd PyDailyHotApi
-```
+# 克隆项目
+git clone https://github.com/your-repo/HotspotCapture.git
+cd HotspotCapture
 
-2. **使用 uv 安装依赖**
-
-```bash
+# 安装依赖 (使用 uv)
 uv install
+
+# 或使用 pip
+pip install -e .
 ```
 
-3. **复制配置文件**
+### 配置
+
+创建 `.env` 文件：
+
+```env
+# 服务器配置
+PORT=6688
+HOST=0.0.0.0
+
+# 缓存配置（秒）
+CACHE_EXPIRE=3600
+
+# CORS 配置
+ALLOWED_DOMAIN=*
+```
+
+### 运行
+
+**启动 API 服务：**
 
 ```bash
-cp .env.example .env
-# 可根据需要修改 .env 文件中的配置
+# 使用 uv
+uv run uvicorn main:app --host 0.0.0.0 --port 6688
+
+# 或
+uv run python -c "import uvicorn; uvicorn.run('main:app', host='0.0.0.0', port=6688)"
 ```
 
-4. **运行项目**
+**运行定时抓取：**
 
 ```bash
-uv run uvicorn main:app --host 0.0.0.0 --port 6688 --reload
+uv run python scheduler.py
 ```
 
+访问 http://localhost:6688/docs 查看 API 文档。
 
-## ⚠️ 须知
+## API 示例
 
-- 本项目为了避免频繁请求官方数据，默认对数据做了缓存处理，默认为 `60` 分钟，如需更改，请自行修改配置
-- 本项目部分接口使用了 **页面爬虫**，若违反对应页面的相关规则，请 **及时通知我去除该接口**
+### 获取微博热搜
 
-## 📢 免责声明
+```bash
+curl http://localhost:6688/weibo
+```
 
-- 本项目提供的 `API` 仅供开发者进行技术研究和开发测试使用。使用该 `API` 获取的信息仅供参考，不代表本项目对信息的准确性、可靠性、合法性、完整性作出任何承诺或保证。本项目不对任何因使用该 `API` 获取信息而导致的任何直接或间接损失负责。本项目保留随时更改 `API` 接口地址、接口协议、接口参数及其他相关内容的权利。本项目对使用者使用 `API` 的行为不承担任何直接或间接的法律责任
-- 本项目并未与相关信息提供方建立任何关联或合作关系，获取的信息均来自公开渠道，如因使用该 `API` 获取信息而产生的任何法律责任，由使用者自行承担
-- 本项目对使用 `API` 获取的信息进行了最大限度的筛选和整理，但不保证信息的准确性和完整性。使用 `API` 获取信息时，请务必自行核实信息的真实性和可靠性，谨慎处理相关事项
-- 本项目保留对 `API` 的随时更改、停用、限制使用等措施的权利。任何因使用本 `API` 产生的损失，本项目不负担任何赔偿和责任
+响应示例：
 
-## 😘 鸣谢
+```json
+{
+  "data": [
+    {
+      "title": "热点标题",
+      "url": "https://weibo.com/search?q=xxx",
+      "hot": 123456,
+      "id": "xxx",
+      "type": "weibo"
+    }
+  ],
+  "title": "微博热搜榜",
+  "url": "https://weibo.com/hot/search"
+}
+```
 
-特此感谢为本项目提供灵感的项目
+### 其他接口
 
-- [DailyHotApi](https://github.com/imsyy/DailyHotApi)
+| 路径 | 平台 |
+|------|------|
+| `/weibo` | 微博热搜榜 |
+| `/bilibili` | 哔哩哔哩热门 |
+| `/zhihu` | 知乎热榜 |
+| `/douyin` | 抖音热点 |
+| `/github` | GitHub Trending |
+| `/toutiao` | 今日头条 |
+| `/juejin` | 掘金热门 |
+| `/douban_movie` | 豆瓣电影 |
+| `/health` | 健康检查 |
+
+## 项目结构
+
+```
+HotspotCapture/
+├── main.py              # FastAPI 应用入口
+├── config.py            # 配置管理
+├── registry.py          # 路由注册中心
+├── scheduler.py         # 定时抓取调度器
+├── deepseek_thinker.py  # AI 深度分析模块
+├── routers/             # 各平台数据源路由
+│   ├── weibo.py
+│   ├── bilibili.py
+│   ├── zhihu.py
+│   └── ...              # 60+ 个平台
+├── utils/               # 工具模块
+│   ├── http.py          # HTTP 请求封装
+│   ├── cache.py         # 缓存系统
+│   ├── logger.py        # 日志模块
+│   └── base_route.py    # 路由基类
+├── test/                # 测试文件
+├── deploy/              # 部署配置
+│   └── DEPLOY.md        # 部署指南
+└── pyproject.toml       # 项目配置
+```
+
+## 定时任务部署
+
+详细部署指南请参考 [deploy/DEPLOY.md](deploy/DEPLOY.md)
+
+### Systemd Timer（推荐）
+
+```bash
+# 复制服务文件
+sudo cp deploy/hotnews-scheduler.service /etc/systemd/system/
+
+# 创建并启用定时器
+sudo systemctl enable hotnews-scheduler.timer
+sudo systemctl start hotnews-scheduler.timer
+```
+
+### Crontab
+
+```cron
+0 6 * * * cd /opt/HotspotCapture && uv run python scheduler.py
+0 11 * * * cd /opt/HotspotCapture && uv run python scheduler.py
+0 16 * * * cd /opt/HotspotCapture && uv run python scheduler.py
+0 21 * * * cd /opt/HotspotCapture && uv run python scheduler.py
+```
+
+## AI 深度分析
+
+项目集成了 AI 深度分析功能，支持：
+
+- **火山引擎**：DeepSeek V3、GLM-4、DeepSeek R1
+- **SiliconFlow**：备用接口
+
+分析内容包括：
+- 热点事件类型和趋势总结
+- 跨平台热点关联分析
+- 重要社会议题识别
+- 阅读建议和思考方向
+
+## 开发
+
+### 添加新平台
+
+1. 在 `routers/` 目录创建新文件 `new_platform.py`
+
+2. 实现数据获取函数：
+
+```python
+from fastapi import APIRouter
+from utils.http import get
+from utils.cache import cache
+from config import config
+
+router = APIRouter()
+
+@router.get("/new_platform")
+async def get_new_platform_hot():
+    """获取新平台热点"""
+    cache_key = "new_platform"
+    
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return cached_data
+    
+    # 实现数据获取逻辑
+    items = []
+    # ...
+    
+    result = {"data": items, "title": "新平台热榜", "url": "https://..."}
+    cache.set(cache_key, result, config.CACHE_EXPIRE)
+    
+    return result
+```
+
+3. 在 `registry.py` 中注册模块名
+
+### 运行测试
+
+```bash
+uv run python test/test_weibo.py
+```
+
+## 技术栈
+
+- **框架**：FastAPI + Uvicorn
+- **HTTP 客户端**：Requests + HTTPX
+- **HTML 解析**：BeautifulSoup4
+- **浏览器自动化**：Playwright（部分平台）
+- **反爬处理**：Cloudscraper
+- **包管理**：uv
+
+## 许可证
+
+MIT License
+
+## 致谢
+
+本项目受 [DailyHot](https://github.com/DailyHot/DailyHot) 启发。
