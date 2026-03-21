@@ -43,7 +43,6 @@ PLATFORMS = [
     ("汽车之家", "routers.autohome", "get_autohome_hot"),
     ("游民星空", "routers.gamersky", "get_gamersky_hot"),
     ("财联社", "routers.cls", "get_cls_hot"),
-    ("TapTap", "routers.taptap", "get_taptap_hot"),
     ("网易新闻", "routers.netease_news", "get_netease_news_hot"),
     ("腾讯新闻", "routers.qq_news", "get_qq_news_hot"),
 ]
@@ -409,6 +408,25 @@ async def main():
 
     # 5. 推送到GitHub（包含深度思考文件）
     push_success = push_to_github(filepath, exec_time, thinking_filepath)
+
+    # 6. 调用邮件监控脚本检测新文件并发送通知
+    if push_success:
+        try:
+            import subprocess
+            monitor_script = r"D:\Completed projects\mdemail\hotnews_monitor.py"
+            log("📧 正在检查新文件并发送邮件通知...")
+            result = subprocess.run(
+                [sys.executable, monitor_script],
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
+            if result.returncode == 0:
+                log("📧 邮件通知检查完成")
+            else:
+                log(f"📧 邮件通知检查失败: {result.stderr}")
+        except Exception as e:
+            log(f"📧 调用邮件监控脚本出错: {e}")
 
     # 完成
     log(f"{'=' * 50}")

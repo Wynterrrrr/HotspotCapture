@@ -39,7 +39,7 @@ async def root():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>PyDailyHotApi - 今日热榜</title>
+        <title>今日热榜</title>
         <style>
             body {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -106,7 +106,7 @@ async def root():
     </head>
     <body>
         <div class="container">
-            <h1>PyDailyHotApi - 今日热榜</h1>
+            <h1>今日热榜</h1>
             <div class="api-list">
                 <div class="api-item">
                     <h3>微博热搜榜</h3>
@@ -124,9 +124,6 @@ async def root():
                     <a href="/zhihu" target="_blank">查看数据</a>
                 </div>
             </div>
-        </div>
-        <div class="footer">
-            <p>PyDailyHotApi v1.0.0 - 一个聚合热门数据的 API 接口</p>
         </div>
     </body>
     </html>

@@ -24,13 +24,13 @@ SILICONFLOW_API_KEY = "sk-rsxpfypqyycvubfcagyemeodihizltjmpwhasmsgufmttukm"
 SILICONFLOW_MODEL = "Pro/MiniMaxAI/MiniMax-M2.5"  # SiliconFlow 的模型 ID
 
 # 分析提示词
-ANALYSIS_PROMPT = """你是一个热点新闻分析专家。请对以下热点数据进行深度分析，生成一份结构化的分析报告。
+ANALYSIS_PROMPT = """你是热点新闻分析专家。请对以下热点数据进行深度分析，生成一份结构化的分析报告。
 
 要求：
 1. 总结今日热点事件的主要类型和趋势
 2. 分析不同平台热点之间的关联性
 3. 识别重要社会议题和潜在影响
-4. 提供阅读建议和思考方向
+4. 总结各个平台的热点差异，特别是都上热点但是热点排序前后不一样的
 
 输出格式要求（Markdown）：
 - 使用中文
@@ -148,7 +148,7 @@ def generate_analysis_markdown(
 ---
 
 <p align="center">
-<i>由 PyDailyHotApi 自动生成 | {exec_time.strftime("%Y-%m-%d")}</i>
+<i>自动生成 | {exec_time.strftime("%Y-%m-%d")}</i>
 </p>
 """
 
@@ -177,7 +177,7 @@ def generate_failure_markdown(exec_time: datetime, error: str) -> str:
 ---
 
 <p align="center">
-<i>由 PyDailyHotApi 自动生成 | {exec_time.strftime("%Y-%m-%d")}</i>
+<i>自动生成 | {exec_time.strftime("%Y-%m-%d")}</i>
 </p>
 """
 
