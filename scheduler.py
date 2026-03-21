@@ -413,7 +413,7 @@ async def main():
     if push_success:
         try:
             import subprocess
-            monitor_script = r"D:\Completed projects\mdemail\hotnews_monitor.py"
+            monitor_script = Path(__file__).parent.parent / "mdemail" / "hotnews_monitor.py"
             log("📧 正在检查新文件并发送邮件通知...")
             result = subprocess.run(
                 [sys.executable, monitor_script],
