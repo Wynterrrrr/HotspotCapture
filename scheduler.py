@@ -8,6 +8,7 @@ import os
 import sys
 import base64
 import json
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
@@ -53,10 +54,15 @@ PLATFORMS = [
     ("贴吧", "routers.tieba", "get_tieba_hot"),
     ("GitHub", "routers.github", "get_github_hot"),
     ("汽车之家", "routers.autohome", "get_autohome_hot"),
-    ("游民星空", "routers.gamersky", "get_gamersky_hot"),
     ("财联社", "routers.cls", "get_cls_hot"),
     ("网易新闻", "routers.netease_news", "get_netease_news_hot"),
     ("腾讯新闻", "routers.qq_news", "get_qq_news_hot"),
+    # 新增平台
+    ("快手", "routers.kuaishou", "get_kuaishou_hot"),
+    ("NGA玩家社区", "routers.ngabbs", "get_ngabbs_hot"),
+    ("V2EX", "routers.v2ex", "get_v2ex_hot"),
+    ("酷安", "routers.coolapk", "get_coolapk_hot"),
+    ("少数派", "routers.sspai", "get_sspai_hot"),
 ]
 
 
@@ -383,6 +389,10 @@ HotNews 文件夹新增文件通知
 
         # 如果有深度思考文件，也发送邮件
         if thinking_filepath and thinking_filepath.exists():
+            # 等待1分钟后发送第二封邮件
+            log(f"⏳ 等待60秒后发送深度思考文件...")
+            time.sleep(60)
+
             with open(thinking_filepath, "r", encoding="utf-8") as f:
                 think_content = f.read()
 
