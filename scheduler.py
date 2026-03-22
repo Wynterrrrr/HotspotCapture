@@ -13,6 +13,9 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 import urllib.request
 import urllib.error
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 # 添加项目根目录到路径
 sys.path.insert(0, str(Path(__file__).parent))
@@ -22,9 +25,18 @@ OUTPUT_DIR = Path(__file__).parent / "hotnews_output"
 
 # GitHub API 推送配置（无需克隆仓库）
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")  # 从环境变量读取
-GITHUB_REPO = os.environ.get("GITHUB_REPO", "Wynterrrrr/ObsdianDrive")  # 仓库：owner/repo
+GITHUB_REPO = os.environ.get(
+    "GITHUB_REPO", "Wynterrrrr/ObsdianDrive"
+)  # 仓库：owner/repo
 GITHUB_BRANCH = os.environ.get("GITHUB_BRANCH", "main")  # 目标分支
 GITHUB_TARGET_DIR = "hotnews"  # 仓库内目标目录
+
+# 邮件配置
+EMAIL_FROM = "1784151291@qq.com"
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "fdtbxvedkjwrfagf")
+EMAIL_TO = "wenzhonghua163@163.com"
+SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.qq.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", 465))
 
 
 # ===================== 平台配置 =====================
@@ -310,6 +322,135 @@ def push_to_github(
         return False
 
 
+def send_email_notification(
+    filepath: Path, thinking_filepath: Optional[Path] = None
+) -> bool:
+    """发送邮件通知新产生的文件"""
+    try:
+        # 读取主文件内容
+        with open(filepath, "r", encoding="utf-8") as f:
+            file_content = f.read()
+
+        file_name = filepath.name
+        file_url = f"https://github.com/{GITHUB_REPO}/blob/{GITHUB_BRANCH}/{GITHUB_TARGET_DIR}/{file_name}"
+
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = f"[HotNews] 新文件通知 - {file_name}"
+        msg["From"] = EMAIL_FROM
+        msg["To"] = EMAIL_TO
+
+        # 构建纯文本内容
+        text_content = f"""
+HotNews 文件夹新增文件通知
+
+文件名: {file_name}
+时间: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+链接: {file_url}
+
+{"=" * 50}
+文件内容:
+{"=" * 50}
+
+{file_content}
+"""
+
+        # 构建 HTML 内容
+        html_content = f"""
+<html>
+<body>
+    <h2>HotNews 文件夹新增文件通知</h2>
+    <p><strong>文件名:</strong> {file_name}</p>
+    <p><strong>时间:</strong> {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
+    <p><strong>链接:</strong> <a href="{file_url}">{file_url}</a></p>
+    <hr>
+    <h3>文件内容:</h3>
+    <pre style="background-color:#f5f5f5;padding:15px;border-radius:5px;white-space:pre-wrap;word-wrap:break-word;">{file_content}</pre>
+</body>
+</html>
+"""
+
+        msg.attach(MIMEText(text_content, "plain", "utf-8"))
+        msg.attach(MIMEText(html_content, "html", "utf-8"))
+
+        log(f"📧 正在连接SMTP服务器: {SMTP_SERVER}:{SMTP_PORT}")
+        with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT) as server:
+            log(f"📧 SMTP连接成功，正在登录...")
+            server.login(EMAIL_FROM, EMAIL_PASSWORD)
+            log(f"📧 登录成功，正在发送邮件...")
+            server.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
+
+        log(f"✅ 邮件已发送: {file_name}")
+
+        # 如果有深度思考文件，也发送邮件
+        if thinking_filepath and thinking_filepath.exists():
+            with open(thinking_filepath, "r", encoding="utf-8") as f:
+                think_content = f.read()
+
+            think_name = thinking_filepath.name
+            think_url = f"https://github.com/{GITHUB_REPO}/blob/{GITHUB_BRANCH}/{GITHUB_TARGET_DIR}/{think_name}"
+
+            msg2 = MIMEMultipart("alternative")
+            msg2["Subject"] = f"[HotNews] 深度思考文件 - {think_name}"
+            msg2["From"] = EMAIL_FROM
+            msg2["To"] = EMAIL_TO
+
+            text2 = f"""
+深度思考文件通知
+
+文件名: {think_name}
+时间: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+链接: {think_url}
+
+{"=" * 50}
+文件内容:
+{"=" * 50}
+
+{think_content}
+"""
+
+            html2 = f"""
+<html>
+<body>
+    <h2>深度思考文件通知</h2>
+    <p><strong>文件名:</strong> {think_name}</p>
+    <p><strong>时间:</strong> {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
+    <p><strong>链接:</strong> <a href="{think_url}">{think_url}</a></p>
+    <hr>
+    <h3>文件内容:</h3>
+    <pre style="background-color:#f5f5f5;padding:15px;border-radius:5px;white-space:pre-wrap;word-wrap:break-word;">{think_content}</pre>
+</body>
+</html>
+"""
+
+            msg2.attach(MIMEText(text2, "plain", "utf-8"))
+            msg2.attach(MIMEText(html2, "html", "utf-8"))
+
+            with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT) as server:
+                server.login(EMAIL_FROM, EMAIL_PASSWORD)
+                server.sendmail(EMAIL_FROM, EMAIL_TO, msg2.as_string())
+
+            log(f"✅ 邮件已发送: {think_name}")
+
+        return True
+
+    except Exception as e:
+        log(f"❌ 邮件发送失败: {str(e)}")
+        return False
+
+
+def clear_output_folder():
+    """清空 hotnews_output 文件夹"""
+    try:
+        if OUTPUT_DIR.exists():
+            for file in OUTPUT_DIR.iterdir():
+                if file.is_file():
+                    file.unlink()
+                    log(f"🗑️ 已删除: {file.name}")
+            log(f"✅ hotnews_output 文件夹已清空")
+    except Exception as e:
+        log(f"❌ 清空文件夹失败: {str(e)}")
+
+
 def generate_failure_report(
     exec_time: datetime, results: Dict[str, Dict[str, Any]]
 ) -> str:
@@ -369,6 +510,9 @@ async def main():
     log(f"🎯 开始执行热点抓取任务")
     log(f"{'=' * 50}")
 
+    # 0. 清空 hotnews_output 文件夹（在生成新文件之前）
+    clear_output_folder()
+
     # 1. 抓取数据
     results = await fetch_all_platforms()
 
@@ -406,27 +550,11 @@ async def main():
     # 4. DeepSeek深度思考分析
     thinking_filepath = await run_deepseek_analysis(md_content, exec_time)
 
-    # 5. 推送到GitHub（包含深度思考文件）
-    push_success = push_to_github(filepath, exec_time, thinking_filepath)
+    # 5. 发送邮件通知（推送之前发送，确保文件内容完整）
+    email_success = send_email_notification(filepath, thinking_filepath)
 
-    # 6. 调用邮件监控脚本检测新文件并发送通知
-    if push_success:
-        try:
-            import subprocess
-            monitor_script = Path(__file__).parent.parent / "mdemail" / "hotnews_monitor.py"
-            log("📧 正在检查新文件并发送邮件通知...")
-            result = subprocess.run(
-                [sys.executable, monitor_script],
-                capture_output=True,
-                text=True,
-                timeout=60
-            )
-            if result.returncode == 0:
-                log("📧 邮件通知检查完成")
-            else:
-                log(f"📧 邮件通知检查失败: {result.stderr}")
-        except Exception as e:
-            log(f"📧 调用邮件监控脚本出错: {e}")
+    # 6. 推送到GitHub（包含深度思考文件）
+    push_success = push_to_github(filepath, exec_time, thinking_filepath)
 
     # 完成
     log(f"{'=' * 50}")
@@ -436,6 +564,7 @@ async def main():
     if thinking_filepath:
         log(f"   - 思考文件: {thinking_filepath}")
     log(f"   - GitHub推送: {'✅ 成功' if push_success else '❌ 失败'}")
+    log(f"   - 邮件通知: {'✅ 成功' if email_success else '❌ 失败'}")
     log(f"{'=' * 50}")
 
     return {
