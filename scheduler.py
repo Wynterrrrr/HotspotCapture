@@ -61,7 +61,6 @@ PLATFORMS = [
     ("快手", "routers.kuaishou", "get_kuaishou_hot"),
     ("NGA玩家社区", "routers.ngabbs", "get_ngabbs_hot"),
     ("V2EX", "routers.v2ex", "get_v2ex_hot"),
-    ("酷安", "routers.coolapk", "get_coolapk_hot"),
     ("少数派", "routers.sspai", "get_sspai_hot"),
 ]
 

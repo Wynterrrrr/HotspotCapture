@@ -13,15 +13,15 @@ from typing import Optional, Tuple
 VOLC_BASE_URL = "https://ark.cn-beijing.volces.com/api/v3"
 VOLC_API_KEY = "eddc9c36-e7d6-460a-93b9-8f8b9be7829d"
 VOLC_MODELS = [
-    "deepseek-v3-2-251201",
-    "glm-4-7-251222",
-    "deepseek-r1-250528",
+    "kimi-k2-thinking-251104",
+    "doubao-seed-2-0-pro-260215"
 ]
 
-# SiliconFlow 备用配置
-SILICONFLOW_BASE_URL = "https://api.siliconflow.cn/v1"
-SILICONFLOW_API_KEY = "sk-rsxpfypqyycvubfcagyemeodihizltjmpwhasmsgufmttukm"
-SILICONFLOW_MODEL = "Pro/MiniMaxAI/MiniMax-M2.5"  # SiliconFlow 的模型 ID
+
+#  备用配置
+SILICONFLOW_BASE_URL = "https://maas-coding-api.cn-huabei-1.xf-yun.com/anthropic"
+SILICONFLOW_API_KEY = "e6fe7c70c5d5a5b146a403c5571aee1d:ZGJlOThmZjRhMGYxYmY3ZjRiNmI2ZmQ3"
+SILICONFLOW_MODEL = "astron-code-latest"  # SiliconFlow 的模型 ID
 
 # 分析提示词
 ANALYSIS_PROMPT = """你是跨平台热点情报分析师。我将提供来自多个平台的实时热点数据，请输出一份**情报简报**，而非分析报告——先给结论，再给证据。
