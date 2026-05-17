@@ -1,6 +1,6 @@
 """
 AI 深度分析模块 - 直接调用大模型 API
-支持火山引擎和 SiliconFlow 作为备用
+首选 GLM-5，备选 DeepSeek V4 Pro
 """
 
 import asyncio
@@ -9,19 +9,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, Tuple
 
-# 火山引擎配置
-VOLC_BASE_URL = "https://ark.cn-beijing.volces.com/api/v3"
-VOLC_API_KEY = "eddc9c36-e7d6-460a-93b9-8f8b9be7829d"
-VOLC_MODELS = [
-    "kimi-k2-thinking-251104",
-    "doubao-seed-2-0-pro-260215"
-]
+# 首选配置 - GLM-5
+PRIMARY_BASE_URL = "https://aigw-gzgy2.cucloud.cn:8443/v1"
+PRIMARY_API_KEY = "sk-sp-TjDZg2CupmeVNCJl5eoPSunYSaE6yGBJ"
+PRIMARY_MODEL = "glm-5"
 
-
-#  备用配置
-SILICONFLOW_BASE_URL = "https://maas-coding-api.cn-huabei-1.xf-yun.com/anthropic"
-SILICONFLOW_API_KEY = "e6fe7c70c5d5a5b146a403c5571aee1d:ZGJlOThmZjRhMGYxYmY3ZjRiNmI2ZmQ3"
-SILICONFLOW_MODEL = "astron-code-latest"  # SiliconFlow 的模型 ID
+# 备选配置 - DeepSeek
+FALLBACK_BASE_URL = "https://api.deepseek.com"
+FALLBACK_API_KEY = "sk-6c9dfdb012734644b5b30919abef98f7"
+FALLBACK_MODEL = "deepseek-v4-pro"
 
 # 分析提示词
 ANALYSIS_PROMPT = """你是跨平台热点情报分析师。我将提供来自多个平台的实时热点数据，请输出一份**情报简报**，而非分析报告——先给结论，再给证据。
@@ -148,28 +144,27 @@ async def try_all_models(md_content: str) -> Tuple[Optional[str], Optional[str]]
     async with httpx.AsyncClient() as client:
         prompt = ANALYSIS_PROMPT.format(hotnews_content=md_content[:32000])  # 限制长度
 
-        # 1. 尝试火山引擎的三个模型
-        for model in VOLC_MODELS:
-            log(f"🔄 尝试火山引擎模型: {model}")
-            success, result = await call_llm_api(
-                client, VOLC_BASE_URL, VOLC_API_KEY, model, prompt
-            )
-            if success:
-                log(f"✅ 火山引擎模型 {model} 调用成功")
-                return model, result
-            else:
-                log(f"❌ 火山引擎模型 {model} 失败: {result}")
-
-        # 2. 所有火山引擎模型失败，尝试 SiliconFlow
-        log("🔄 火山引擎全部失败，尝试 SiliconFlow 备用接口...")
+        # 1. 首选 GLM-5
+        log(f"🔄 尝试首选模型: {PRIMARY_MODEL}")
         success, result = await call_llm_api(
-            client, SILICONFLOW_BASE_URL, SILICONFLOW_API_KEY, SILICONFLOW_MODEL, prompt
+            client, PRIMARY_BASE_URL, PRIMARY_API_KEY, PRIMARY_MODEL, prompt
         )
         if success:
-            log(f"✅ SiliconFlow 调用成功")
-            return "siliconflow-deepseek-v3", result
+            log(f"✅ 首选模型 {PRIMARY_MODEL} 调用成功")
+            return PRIMARY_MODEL, result
         else:
-            log(f"❌ SiliconFlow 失败: {result}")
+            log(f"❌ 首选模型 {PRIMARY_MODEL} 失败: {result}")
+
+        # 2. 首选失败，尝试备选 DeepSeek
+        log(f"🔄 首选失败，尝试备选模型: {FALLBACK_MODEL}...")
+        success, result = await call_llm_api(
+            client, FALLBACK_BASE_URL, FALLBACK_API_KEY, FALLBACK_MODEL, prompt
+        )
+        if success:
+            log(f"✅ 备选模型 {FALLBACK_MODEL} 调用成功")
+            return FALLBACK_MODEL, result
+        else:
+            log(f"❌ 备选模型 {FALLBACK_MODEL} 失败: {result}")
             return None, result
 
 

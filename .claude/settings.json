@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($env:Path = \"C:\\\\Users\\\\Wynter\\\\.local\\\\bin;$env:Path\"; uv sync)",
+      "PowerShell($env:Path = [Environment]::GetEnvironmentVariable\\(\"Path\", \"Machine\"\\) + \";\" + [Environment]::GetEnvironmentVariable\\(\"Path\", \"User\"\\); uv --version)",
+      "PowerShell($env:Path = [Environment]::GetEnvironmentVariable\\(\"Path\", \"Machine\"\\) + \";\" + [Environment]::GetEnvironmentVariable\\(\"Path\", \"User\"\\); uv run python scheduler.py)",
+      "PowerShell($env:Path = [Environment]::GetEnvironmentVariable\\(\"Path\", \"Machine\"\\) + \";\" + [Environment]::GetEnvironmentVariable\\(\"Path\", \"User\"\\); $env:PYTHONIOENCODING = \"utf-8\"; uv run python scheduler.py)"
+    ]
+  }
+}
